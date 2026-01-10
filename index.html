@@ -1,203 +1,221 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>نظام الرواتب - مهملي أحمد</title>
-    <link rel="stylesheet" href="style.css">
+    <title>نظام الرواتب السحابي</title>
+    <style>
+        :root { --primary: #0D47A1; --light: #E3F2FD; --success: #2E7D32; --danger: #C62828; --warning: #F9A825; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f4f6f8; user-select: none; -webkit-user-select: none; }
+        
+        /* تنسيق الشبكة والتقويم */
+        #calendarGrid { display: grid; gap: 1px; background-color: #cfd8dc; border: 1px solid #b0bec5; border-radius: 4px; overflow: auto; max-height: 65vh; position: relative; }
+        #calendarGrid > div { background-color: #fff; text-align: center; padding: 6px 2px; font-size: 0.85rem; min-height: 35px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
+        .employee-name-cell { position: sticky; right: 0; background-color: #fff; z-index: 10; border-left: 2px solid #ddd; font-weight: bold; color: #333; }
+        .attendance-cell { cursor: pointer; transition: background 0.2s; }
+        .attendance-cell:active { background-color: #eee; }
+        
+        /* حالات الحضور */
+        .status-present { background-color: #e8f5e9 !important; color: var(--success); font-weight: bold; }
+        .status-absent { background-color: #ffebee !important; color: var(--danger); font-weight: bold; }
+        .status-partial { background-color: #fff3e0 !important; color: var(--warning); font-weight: bold; }
+        .cell-locked { background-color: #fafafa; }
+
+        /* الأزرار والنوافذ */
+        .btn-main { background: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 1rem; cursor: pointer; width: 100%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .btn-float { position: fixed; bottom: 20px; left: 20px; background: var(--primary); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 100; border: none; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from {transform: translateY(20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
+        
+        /* زر السويتش (Toggle Switch) */
+        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .row-now { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        label { font-weight: bold; color: #555; display: block; margin-top: 10px; }
+    </style>
 </head>
 <body>
 
-<header>
-    <div class="header-container">
-        <div class="header-text-area">
-            <span id="dispNameAr" class="company-ar">نظام الرواتب</span>
-            <span id="dispNameFr" class="company-fr">System V2.9</span>
-            <span class="credits-text">تصميم وبرمجة/ مهملي أحمد</span>
+    <div id="contentArea" style="display:none; height: 100vh; flex-direction: column;">
+        <div style="background: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); z-index: 20;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img id="displayLogo" style="height: 40px; display: none; border-radius: 5px;">
+                <div>
+                    <h3 id="dispNameAr" style="margin: 0; color: var(--primary);">نظام الرواتب</h3>
+                    <small id="dispNameFr" style="color: #777; font-size: 0.8rem;"></small>
+                </div>
+            </div>
+            <button onclick="requestAdminAccess('settings')" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">⚙️</button>
         </div>
-        <img id="displayLogo" class="app-logo" src="" alt="Logo">
-    </div>
-</header>
 
-<div id="contentArea" style="display:none">
-    <div style="display:flex; justify-content:space-between; padding:15px; align-items:center">
-        <button onclick="changeMonth(-1)" class="btn-icon">◀</button>
-        <b id="monthLabel" style="font-size:1.1rem; color:var(--primary)"></b>
-        <button onclick="changeMonth(1)" class="btn-icon">▶</button>
+        <div style="padding: 10px; display: flex; justify-content: space-between; align-items: center; background: #fff; margin: 10px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <button onclick="changeMonth(-1)" style="background:none; border:none; font-size:1.2rem; padding:5px 15px">◀</button>
+            <h4 id="monthLabel" style="margin:0; color: var(--primary);"></h4>
+            <button onclick="changeMonth(1)" style="background:none; border:none; font-size:1.2rem; padding:5px 15px">▶</button>
+        </div>
+
+        <div style="flex: 1; padding: 0 10px; overflow: hidden;">
+            <div id="calendarGrid"></div>
+        </div>
+
+        <div style="background: white; padding: 10px; display: flex; justify-content: space-around; border-top: 1px solid #eee;">
+            <button onclick="openAdvances()" style="background:none; border:none; display:flex; flex-direction:column; align-items:center; color:#555"><span style="font-size:1.2rem">💸</span><span style="font-size:0.7rem">تسبيقات</span></button>
+            <button onclick="openDebts()" style="background:none; border:none; display:flex; flex-direction:column; align-items:center; color:#555"><span style="font-size:1.2rem">📓</span><span style="font-size:0.7rem">ديون</span></button>
+            <button onclick="printReport()" style="background:none; border:none; display:flex; flex-direction:column; align-items:center; color:#555"><span style="font-size:1.2rem">🖨</span><span style="font-size:0.7rem">طباعة</span></button>
+            <button onclick="sendSelectedReport()" style="background:none; border:none; display:flex; flex-direction:column; align-items:center; color:#555"><span style="font-size:1.2rem">📱</span><span style="font-size:0.7rem">واتساب</span></button>
+        </div>
     </div>
-    
-    <div class="calendar-container"><div id="calendarGrid" class="calendar-grid"></div></div>
-    
-    <div style="padding:0 15px 15px;">
-        <div style="background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-            <label style="font-size:0.9rem; font-weight:bold; color:#555">إرسال كشف سريع:</label>
+
+    <div id="pinModal" class="modal" style="display:flex">
+        <div class="modal-content" style="text-align: center;">
+            <div style="margin-bottom: 20px;">🔒</div>
+            <h3 style="margin-top:0">جاري التحميل...</h3>
+        </div>
+    </div>
+
+    <div id="attModal" class="modal">
+        <div class="modal-content">
+            <h3 id="attEmpName" style="text-align:center; color: var(--primary); margin-top:0"></h3>
+            
+            <div id="boxIn">
+                <label>وقت الدخول:</label>
+                <div class="row-now">
+                    <input type="time" id="tIn" style="font-size: 1.2rem;">
+                    <button onclick="setNow('tIn')" style="width: auto; padding: 0 15px;">الآن</button>
+                </div>
+                
+                <label>سعر الساعة لهذا اليوم:</label>
+                <input type="number" id="currentRateInput" placeholder="السعر الافتراضي">
+                
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button class="btn-main" style="background: var(--success);" onclick="saveAtt('in')">تسجيل حضور</button>
+                    <button class="btn-main" style="background: var(--danger);" onclick="saveAtt('absent')">غياب</button>
+                </div>
+            </div>
+
+            <button onclick="closeM('attModal')" style="width:100%; margin-top:15px; background:none; border:1px solid #ddd; color:#555; padding:10px; border-radius:8px">إلغاء</button>
+        </div>
+    </div>
+
+    <div id="adminEditModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0">✏️ تعديل المدير</h3>
+            <label>وقت الدخول:</label>
+            <input type="time" id="editIn">
+            <label>وقت الخروج:</label>
             <div class="row-now">
-                <select id="empSelect" style="margin:0"><option value="">-- اختر العامل --</option></select>
-                <button onclick="sendSelectedReport()" style="width:auto; background:#00796B; color:white; padding:10px 20px">واتساب</button>
+                <input type="time" id="editOut">
+                <button onclick="setNow('editOut')" style="width:auto">الآن</button>
+            </div>
+            
+            <div style="margin-top:15px; display:grid; gap:10px">
+                <button onclick="confirmAdminEdit()" class="btn-main">حفظ التعديلات</button>
+                <button onclick="saveAtt('deleteAdmin')" class="btn-main" style="background: #fff; color: var(--danger); border: 1px solid var(--danger)">حذف السجل</button>
+                <button onclick="closeM('adminEditModal')" style="background:#eee; color:#333; border:none; padding:10px; border-radius:8px">إغلاق</button>
             </div>
         </div>
     </div>
 
-    <div style="padding:15px; display:grid; grid-template-columns:1fr 1fr; gap:12px">
-        <button class="btn-main" onclick="openAdvances()">💰 التسبيقات</button>
-        <button class="btn-main" onclick="openDebts()" style="background:var(--debt)">📒 سجل الديون</button>
-        <button class="btn-main" onclick="printReport()" style="background:var(--success)">📄 تقرير PDF</button>
-        <button class="btn-main" onclick="requestAdminAccess('settings')" style="background:#546E7A;">⚙️ الإعدادات</button>
-        <button class="btn-main" onclick="clearAttendanceOnly()" style="background:var(--danger); grid-column: span 2;">🗑️ بدء شهر جديد (مسح التأشير)</button>
-    </div>
-</div>
-
-<div id="pinModal" class="modal" style="display:flex">
-    <div class="modal-content" align="center">
-        <div id="lockWarning" style="color:red; font-weight:bold; display:none; margin-bottom:10px">⚠️ البرنامج مغلق مؤقتاً!</div>
-        <h3 id="pinTitle" style="color:var(--primary); margin-top:0">أدخل رمز الدخول</h3>
-        <div style="display:flex; justify-content:center; margin:20px 0" id="dotsContainer"></div>
-        <div class="pin-grid">
-            <button onclick="pressPin('1')">1</button><button onclick="pressPin('2')">2</button><button onclick="pressPin('3')">3</button>
-            <button onclick="pressPin('4')">4</button><button onclick="pressPin('5')">5</button><button onclick="pressPin('6')">6</button>
-            <button onclick="pressPin('7')">7</button><button onclick="pressPin('8')">8</button><button onclick="pressPin('9')">9</button>
-            <button onclick="clearPin()" style="background:#FFCDD2; color:#C62828">C</button>
-            <button onclick="pressPin('0')">0</button>
-            <button onclick="backspacePin()" style="background:#FFCCBC; color:#D84315">⌫</button>
-        </div>
-        <button onclick="cancelPin()" style="background:#f5f5f5; color:#333; margin-top:15px">إلغاء</button>
-    </div>
-</div>
-
-<div id="attModal" class="modal">
-    <div class="modal-content">
-        <h3 id="attEmpName" align="center" style="color:var(--primary)"></h3>
-        <div style="background:#F3E5F5; padding:12px; border-radius:8px; margin-bottom:15px; border:1px solid #E1BEE7">
-            <label style="font-size:0.85rem; font-weight:bold; color:#6A1B9A">الأجر اليومي لهذا العامل:</label>
-            <div class="row-now">
-                <input type="number" id="currentRateInput" style="margin:0; padding:8px">
-                <button onclick="updateEmpRateFromModal()" style="width:auto; padding:8px 15px; background:#8E24AA; font-size:0.8rem; color:white;">تحديث</button>
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h3 style="text-align:center; margin-top:0">⚙️ الإعدادات</h3>
+            
+            <div style="background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                <h4 style="margin: 0 0 10px 0; color: #555;">🏢 بيانات المؤسسة</h4>
+                <input id="inputCompName" placeholder="اسم المؤسسة (عربي)">
+                <input id="inputCompNameFr" placeholder="Nom de l'entreprise (Fr)">
+                <label style="font-size: 0.8rem; margin-top: 5px;">شعار المؤسسة (رابط أو ملف):</label>
+                <input type="file" id="inputLogo" accept="image/*" onchange="previewFile()">
+                <img id="previewLogo" style="width: 50px; display: none; margin-top: 5px;">
             </div>
-        </div>
-        <div id="boxIn">
-            <label>وقت الحضور:</label>
-            <div class="row-now"><input type="time" id="tIn" value="08:00"><button class="btn-now" onclick="setNow('tIn')">الآن</button></div>
-            <button class="btn-main" onclick="saveAtt('in')">تسجيل دخول</button>
-        </div>
-        <div id="boxOut" style="display:none">
-            <label>وقت الانصراف:</label>
-            <div class="row-now"><input type="time" id="tOut" value="16:00"><button class="btn-now" onclick="setNow('tOut')">الآن</button></div>
-            <button class="btn-main" onclick="saveAtt('out')" style="background:var(--success)">إتمام اليوم</button>
-        </div>
-        <button class="btn-main" style="background:var(--danger); margin-top:10px" onclick="saveAtt('absent')">تسجيل غياب</button>
-        <button onclick="closeM('attModal')" style="background:#eee; color:#333; margin-top:10px">إغلاق</button>
-    </div>
-</div>
 
-<div id="adminEditModal" class="modal">
-    <div class="modal-content">
-        <h3>🛠️ تعديل السجل</h3>
-        <label>دخول:</label><div class="row-now"><input type="time" id="editIn"><button class="btn-now" onclick="setNow('editIn')">🕒</button></div>
-        <label>خروج:</label><div class="row-now"><input type="time" id="editOut"><button class="btn-now" onclick="setNow('editOut')">🕒</button></div>
-        <button class="btn-main" onclick="confirmAdminEdit()">تأكيد التعديل</button>
-        <button class="btn-main" style="background:var(--danger)" onclick="saveAtt('deleteAdmin')">🗑️ حذف السجل</button>
-        <button onclick="closeM('adminEditModal')" style="background:#eee; color:#333">رجوع</button>
-    </div>
-</div>
+            <div style="background: #E3F2FD; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                <h4 style="margin: 0 0 10px 0; color: var(--primary);">🔒 الأمان</h4>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span>تفعيل رمز الدخول</span>
+                    <label class="switch">
+                        <input type="checkbox" id="swPin" onchange="toggleSecurity('pin')">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
 
-<div id="advancesModal" class="modal">
-    <div class="modal-content">
-        <h3>💰 سجل التسبيقات</h3>
-        <div id="advListArea" style="max-height: 400px; overflow-y: auto;"></div>
-        <button onclick="closeM('advancesModal')" style="background:#eee; color:#333; margin-top:10px">إغلاق</button>
-    </div>
-</div>
-
-<div id="debtsModal" class="modal">
-    <div class="modal-content" style="max-width: 550px;">
-        <h3 style="color:var(--debt); text-align:center; margin-top:0">📒 إدارة الديون</h3>
-        <datalist id="namesList"></datalist>
-        <div style="display:flex; gap:10px; margin-bottom:10px;">
-            <button onclick="showDebtTab('in')" id="btnTabIn" style="background:var(--success); color:white; flex:1">ديون للتحصيل</button>
-            <button onclick="showDebtTab('out')" id="btnTabOut" style="background:#eee; color:#333; flex:1">ديون للتسديد</button>
-        </div>
-        <div id="debtSectionIn" class="debt-section" style="border-right: 4px solid var(--success);">
-            <h4 style="margin:0 0 10px 0; color:var(--success)">📥 ديون للتحصيل</h4>
-            <div class="row-now"><input id="debtInName" list="namesList" placeholder="الاسم" onchange="checkNewName(this.value)"><input id="debtInVal" type="number" placeholder="المبلغ" style="width:100px"></div>
-            <button class="btn-main" onclick="addDebt('in')" style="background:var(--success); padding:8px">إضافة</button>
-            <div id="debtInList" style="max-height:300px; overflow-y:auto; margin-top:10px"></div>
-            <div class="total-row" style="background:#333; color:white; padding:10px; border-radius:8px; margin-top:5px; display:flex; justify-content:space-between"><span>المجموع:</span><span id="totalIn">0</span></div>
-        </div>
-        <div id="debtSectionOut" class="debt-section" style="display:none; border-right: 4px solid var(--danger);">
-            <h4 style="margin:0 0 10px 0; color:var(--danger)">📤 ديون للتسديد</h4>
-            <div class="row-now"><input id="debtOutName" list="namesList" placeholder="الاسم"><input id="debtOutVal" type="number" placeholder="المبلغ" style="width:100px"></div>
-            <button class="btn-main" onclick="addDebt('out')" style="background:var(--danger); padding:8px">إضافة</button>
-            <div id="debtOutList" style="max-height:300px; overflow-y:auto; margin-top:10px"></div>
-            <div class="total-row" style="background:#333; color:white; padding:10px; border-radius:8px; margin-top:5px; display:flex; justify-content:space-between"><span>المجموع:</span><span id="totalOut">0</span></div>
-        </div>
-        <div class="delete-manager">
-            <h4 style="margin:0 0 10px 0; color:#C62828">🗑️ مدير الحذف</h4>
-            <label style="font-size:0.8rem; font-weight:bold;">1. نوع الدين:</label>
-            <select id="delType" class="del-select" onchange="populateDelClients()" style="margin-bottom:5px"><option value="in">ديون للتحصيل</option><option value="out">ديون للتسديد</option></select>
-            <label style="font-size:0.8rem; font-weight:bold;">2. اختر العميل:</label>
-            <select id="delClientSelect" class="del-select" onchange="updateDelRecords()" style="margin-bottom:10px"><option value="">-- اختر من القائمة --</option></select>
-            <div id="delRecordContainer" class="del-checkbox-container"></div>
-            <div style="display:flex; justify-content:space-between; margin-top:10px; align-items: center;">
-                <button id="btnSelectAll" onclick="toggleSelectAll()" style="background:var(--primary-grad); color:white; width:auto; font-size:0.85rem; padding:8px 20px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.15);">تحديد الكل ✔</button>
-                <button class="btn-main" onclick="executeDelete()" style="background:#C62828; width:auto; padding:8px 20px; margin:0; box-shadow:0 2px 4px rgba(198, 40, 40, 0.3);">حذف المحدد 🗑️</button>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>تفعيل رمز المسؤول</span>
+                    <label class="switch">
+                        <input type="checkbox" id="swAdmin" onchange="toggleSecurity('admin')">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
             </div>
-        </div>
-        <button onclick="closeM('debtsModal')" style="background:#eee; color:#333; margin-top:15px">إغلاق</button>
-    </div>
-</div>
 
-<div id="historyModal" class="modal">
-    <div class="modal-content">
-        <h3 id="histTitle" style="color:var(--primary); text-align:center; margin-top:0">📜 سجل العمليات</h3>
-        <div style="max-height: 350px; overflow-y: auto; background: #f9f9f9; padding: 5px; border-radius: 8px;"><ul id="historyList" class="history-list" style="padding:0; list-style:none"></ul></div>
-        <div style="background:#263238; color:white; padding:12px; border-radius:8px; margin-top:15px; display:flex; justify-content:space-between"><span>الرصيد المتبقي:</span><span id="histRemaining" style="font-weight:bold; font-size:1.1rem">0</span></div>
-        <button onclick="closeM('historyModal')" style="background:#eee; color:#333; margin-top:10px">إغلاق</button>
-    </div>
-</div>
-
-<div id="settingsModal" class="modal">
-    <div class="modal-content">
-        <h3>⚙️ الإعدادات</h3>
-        <div style="background:#fff; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #ddd; text-align: center;">
-            <h4 style="margin:0 0 10px 0; color:var(--primary)">🏢 بيانات المؤسسة</h4>
-            
-            <label style="display:block; text-align:right; font-size:0.9rem">الاسم (عربي):</label>
-            <input id="inputCompName" placeholder="مثال: مؤسسة الفتح">
-            
-            <label style="display:block; text-align:right; font-size:0.9rem">الاسم (فرنسي/لاتيني):</label>
-            <input id="inputCompNameFr" placeholder="Ex: El-Feth Company">
-            
-            <label style="display:block; text-align:right; font-size:0.9rem; margin-top:10px">شعار المؤسسة:</label>
-            <input type="file" id="inputLogo" accept="image/*" onchange="handleLogoUpload(this)">
-            <img id="previewLogo" style="width:80px; height:80px; border-radius:50%; object-fit:cover; display:none; margin:10px auto; border:3px solid #ddd">
-            
-            <button class="btn-main" onclick="saveCompanySettings()" style="background:#FF9800; color:white; margin-top:10px">💾 حفظ الهوية</button>
-        </div>
-
-        <div style="background:#f5f5f5; padding:15px; border-radius:8px; margin-bottom:15px">
-            <h4 style="margin:0 0 10px 0; color:#555">الأمان</h4>
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px"><span>تفعيل رمز الدخول</span><label class="switch"><input type="checkbox" id="chkLogin" onchange="toggleSecurity('login')"><span class="slider"></span></label></div>
-            <div style="display:flex; justify-content:space-between"><span>تفعيل رمز المسؤول</span><label class="switch"><input type="checkbox" id="chkAdmin" onchange="toggleSecurity('admin')"><span class="slider"></span></label></div>
-        </div>
-        <div style="background:#E3F2FD; padding:15px; border-radius:8px; border:1px dashed var(--primary); margin-bottom:15px">
-            <h4 style="margin:0 0 10px 0; color:var(--primary)">النسخ الاحتياطي</h4>
-            <div style="display:flex; gap:10px">
-                <button onclick="downloadBackup()" style="background:#1565C0; color:white; flex:1">📥 حفظ نسخة</button>
-                <button onclick="document.getElementById('restoreInput').click()" style="background:#E65100; color:white; flex:1">📤 استعادة</button>
+            <div style="margin-top: 15px;">
+                <h4 style="margin-bottom: 5px;">👥 قائمة العمال</h4>
+                <div class="row-now">
+                    <input id="newE" placeholder="اسم العامل">
+                    <input id="newR" type="number" placeholder="الأجر" style="width: 80px;">
+                    <button onclick="addE()" class="btn-main" style="width: auto;">+</button>
+                </div>
+                <div id="eList" style="max-height: 150px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px;"></div>
             </div>
-            <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreBackup(this)">
-        </div>
-        <h4 style="margin-bottom:5px">قائمة العمال</h4>
-        <div id="eList" style="max-height:150px; overflow-y:auto; border:1px solid #eee; border-radius:8px; padding:5px; margin-bottom:10px"></div>
-        <div class="row-now"><input id="newE" placeholder="اسم العامل"><input id="newR" type="number" placeholder="الأجر" style="width:80px"></div>
-        <button class="btn-main" onclick="addE()">➕ إضافة عامل</button>
-        <hr style="margin:15px 0; border-color:#eee">
-        <div class="row-now"><input type="password" id="p1" maxlength="4" placeholder="الرمز الجديد (4 أرقام)"><button onclick="updatePin()" style="width:auto; background:#333; color:white">تحديث</button></div>
-        <button onclick="closeM('settingsModal')" style="background:#eee; color:#333">إغلاق</button>
-    </div>
-</div>
 
-<script type="module" src="script.js"></script>
+            <button onclick="closeM('settingsModal')" style="width:100%; margin-top:15px; background:#555; color:white; padding:12px; border:none; border-radius:8px">إغلاق</button>
+        </div>
+    </div>
+
+    <div id="advancesModal" class="modal"><div class="modal-content"><h3 style="margin-top:0">💸 التسبيقات</h3><div id="advListArea" style="max-height:60vh;overflow-y:auto"></div><button onclick="closeM('advancesModal')" class="btn-main" style="background:#777;margin-top:10px">إغلاق</button></div></div>
+    
+    <div id="debtsModal" class="modal">
+        <div class="modal-content" style="max-width:500px">
+            <h3 style="margin-top:0;text-align:center">📓 دفتر الديون</h3>
+            <div style="display:flex; gap:10px; margin-bottom:15px">
+                <button id="btnTabIn" onclick="showDebtTab('in')" style="flex:1; padding:10px; border:none; border-radius:5px; font-weight:bold">ديون لها (In)</button>
+                <button id="btnTabOut" onclick="showDebtTab('out')" style="flex:1; padding:10px; border:none; border-radius:5px; font-weight:bold">ديون عليها (Out)</button>
+            </div>
+            
+            <div id="debtSectionIn">
+                <div class="row-now"><input id="debtInName" list="namesList" placeholder="الاسم"><input id="debtInVal" type="number" placeholder="المبلغ"><button onclick="addDebt('in')" class="btn-main" style="width:auto;background:var(--success)">+</button></div>
+                <div style="background:#e8f5e9; padding:5px; text-align:center; font-weight:bold; border-radius:4px; margin-bottom:5px">المجموع: <span id="totalIn">0</span> دج</div>
+                <div id="debtInList" style="max-height:40vh; overflow-y:auto"></div>
+            </div>
+
+            <div id="debtSectionOut" style="display:none">
+                <div class="row-now"><input id="debtOutName" list="namesList" placeholder="الاسم"><input id="debtOutVal" type="number" placeholder="المبلغ"><button onclick="addDebt('out')" class="btn-main" style="width:auto;background:var(--danger)">+</button></div>
+                <div style="background:#ffebee; padding:5px; text-align:center; font-weight:bold; border-radius:4px; margin-bottom:5px">المجموع: <span id="totalOut">0</span> دج</div>
+                <div id="debtOutList" style="max-height:40vh; overflow-y:auto"></div>
+            </div>
+            
+            <datalist id="namesList"></datalist>
+
+            <div style="margin-top:15px; padding-top:10px; border-top:1px dashed #ccc">
+                <div style="font-size:0.8rem; margin-bottom:5px">🗑️ إدارة السجلات</div>
+                <div class="row-now">
+                    <select id="delType" style="flex:1"><option value="in">لها</option><option value="out">عليها</option></select>
+                    <select id="delClientSelect" onchange="updateDelRecords()" style="flex:2"></select>
+                </div>
+                <div id="delRecordContainer" style="max-height:100px; overflow-y:auto; border:1px solid #eee; margin-bottom:5px"></div>
+                <div style="display:flex; gap:5px">
+                    <button id="btnSelectAll" onclick="toggleSelectAll()" style="flex:1; padding:5px; background:#78909C; color:white; border:none; border-radius:4px; font-size:0.8rem">تحديد الكل</button>
+                    <button onclick="executeDelete()" style="flex:1; padding:5px; background:var(--danger); color:white; border:none; border-radius:4px; font-size:0.8rem">حذف المحدد</button>
+                </div>
+            </div>
+
+            <button onclick="closeM('debtsModal')" style="width:100%; margin-top:10px; padding:10px; border:none; background:#eee; border-radius:8px">إغلاق</button>
+        </div>
+    </div>
+
+    <div id="historyModal" class="modal"><div class="modal-content"><h4 id="histTitle" style="margin-top:0"></h4><div style="margin-bottom:10px;font-weight:bold;color:var(--primary)">الباقي: <span id="histRemaining"></span></div><ul id="historyList" style="list-style:none;padding:0;max-height:50vh;overflow-y:auto"></ul><button onclick="closeM('historyModal')" style="width:100%;padding:10px;border:none;background:#eee;border-radius:8px">إغلاق</button></div></div>
+
+    <script type="module" src="script.js"></script>
 
 </body>
-</html>
+    </html>
+                                                                                                                                                                                                                                                                                                                                     
