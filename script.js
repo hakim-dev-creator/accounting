@@ -1,4 +1,4 @@
-  // استيراد أدوات فايربيس
+ // استيراد أدوات فايربيس
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -48,35 +48,89 @@ window.onload = () => {
 };
 
 function startLiveSync() {
-    // إضافة كاشف أخطاء للقراءة
     onSnapshot(doc(db, "company_data", DATA_DOC_ID), (docSnap) => {
         if (docSnap.exists()) {
             appData = { ...appData, ...docSnap.data() };
             renderCalendar(); 
             applyCompanyIdentity();
+            // تحديث القائمة فوراً إذا كانت الإعدادات مفتوحة
             if(document.getElementById('settingsModal').style.display === 'flex') {
+                renderEmpList();
                 updateSwitchUI();
             }
         } else {
             saveToCloud(); 
         }
     }, (error) => {
-        // هنا سيظهر تنبيه إذا كانت المشكلة في قراءة البيانات
-        alert("⛔ خطأ في الاتصال بقاعدة البيانات:\n" + error.message);
+        // تجاهل الأخطاء البسيطة، التنبيه فقط عند الفشل التام
+        console.error("Sync Error:", error);
     });
 }
 
 async function saveToCloud() {
     try { 
         await setDoc(doc(db, "company_data", DATA_DOC_ID), appData); 
-        // لن نضع تنبيهاً عند النجاح لكي لا يكون مزعجاً، لكن سنكشف الفشل
     } catch (e) { 
-        // 🔴 هنا سيخبرك التطبيق لماذا لا يحفظ!
-        alert("⛔ فشل الحفظ! السبب:\n" + e.message); 
-        console.error(e); 
+        alert("⛔ فشل الحفظ! تأكد من الإنترنت.\n" + e.message); 
     }
 }
 window.save = saveToCloud; 
+
+// --- 🛠️ إصلاح دالة إضافة عامل (Add Worker Fix) ---
+window.addE = () => {
+    let nameInput = document.getElementById('newE');
+    let rateInput = document.getElementById('newR');
+    let n = nameInput.value;
+    let r = rateInput.value;
+
+    if(n && r) {
+        // 1. إضافة للذاكرة المحلية
+        appData.emps.push({id: Date.now(), name: n, rate: parseFloat(r)});
+        
+        // 2. تحديث الشاشة فوراً
+        renderEmpList(); 
+
+        // 3. مسح الخانات (لتعرف أن الإضافة تمت)
+        nameInput.value = "";
+        rateInput.value = "";
+
+        // 4. الحفظ في السحابة
+        saveToCloud();
+    } else {
+        alert("⚠️ يرجى كتابة اسم العامل والأجر!");
+    }
+};
+
+// --- 🛠️ إصلاح دالة الحذف (Delete Worker Fix) ---
+window.deleteWorker = (id) => {
+    if(confirm('حذف هذا العامل؟')) {
+        appData.emps = appData.emps.filter(x => x.id != id);
+        renderEmpList(); // تحديث الشاشة فوراً
+        saveToCloud();
+    }
+};
+
+// دالة رسم القائمة (مشتركة للإضافة والحذف)
+function renderEmpList() {
+    const list = document.getElementById('eList');
+    if(!list) return;
+    
+    list.innerHTML = appData.emps.map(e => 
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #eee;background:#fff;margin-bottom:5px;border-radius:5px">
+            <span style="font-weight:bold">${e.name} <span style="color:#777;font-size:0.9em">(${e.rate} دج)</span></span>
+            <button onclick="deleteWorker(${e.id})" style="background:#ff4444;border:none;color:white;padding:5px 12px;border-radius:4px;cursor:pointer">حذف</button>
+        </div>`
+    ).join('');
+    
+    // التمرير لأسفل القائمة لرؤية الاسم الجديد
+    list.scrollTop = list.scrollHeight;
+}
+
+window.openSettings = () => {
+    renderEmpList(); // رسم القائمة عند الفتح
+    updateSwitchUI();
+    document.getElementById('settingsModal').style.display='flex';
+};
 
 // دوال الأمان
 window.toggleSecurity = (type) => {
@@ -91,12 +145,6 @@ function updateSwitchUI() {
     if(swPin) swPin.checked = appData.pinEnabled || false;
     if(swAdmin) swAdmin.checked = appData.adminEnabled || false;
 }
-
-window.openSettings = () => {
-    document.getElementById('eList').innerHTML = appData.emps.map(e => `<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee"><span>${e.name} (${e.rate})</span><button onclick="if(confirm('حذف؟')){appData.emps=appData.emps.filter(x=>x.id!=${e.id});save();openSettings()}" style="background:red;width:auto;padding:2px 8px;color:white;font-size:0.7rem">حذف</button></div>`).join('');
-    updateSwitchUI();
-    document.getElementById('settingsModal').style.display='flex';
-};
 
 // دوال تسجيل الدخول
 function showLoginScreen() {
@@ -119,7 +167,7 @@ window.loginCloud = () => {
     });
 };
 
-// دوال التقويم (كما هي)
+// دوال التقويم
 function setupUI() { applyCompanyIdentity(); renderCalendar(); }
 function applyCompanyIdentity() {
     if(appData.companyName) document.getElementById('dispNameAr').innerText = appData.companyName;
@@ -176,7 +224,6 @@ window.saveAtt = (type) => {
     saveToCloud(); 
 };
 
-window.addE = () => { let n=document.getElementById('newE').value, r=document.getElementById('newR').value; if(n&&r){appData.emps.push({id:Date.now(), name:n, rate:parseFloat(r)}); saveToCloud(); openSettings();} };
 window.closeM = (id) => document.getElementById(id).style.display = 'none';
 window.requestAdminAccess = (t) => { if(t==='settings') window.openSettings(); };
 function calculateMinutes(tIn, tOut) {
