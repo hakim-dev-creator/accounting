@@ -590,9 +590,9 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
 <script>
-  // 2. إعدادات المشروع (ضع بياناتك هنا)
+  // 1. إعدادات Firebase
   const firebaseConfig = {
-    apiKey: "AIzaSyDZ81FaYxuKmhLPW139xUX_...", 
+    apiKey: "AIzaSyDZ81FaYxuKmhLPW139xUX_...", // تأكد من وضع كودك كاملاً هنا
     authDomain: "salary-system-cloud.firebaseapp.com",
     projectId: "salary-system-cloud",
     storageBucket: "salary-system-cloud.firebasestorage.app",
@@ -601,50 +601,40 @@
     measurementId: "G-K3YKDZQ4DT"
   };
 
-  // 3. بدء التشغيل (ترتيب مهم جداً)
+  // 2. تشغيل الخدمة
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // 4. دالة جلب البيانات (توضع بعد تعريف db)
-  function loadSalaries() {
-      db.collection("salary_sys_v1").get().then((querySnapshot) => {
-          console.log("تم الاتصال بنجاح!");
-          querySnapshot.forEach((doc) => {
-              console.log("بيانات الموظف:", doc.data());
-          });
-      }).catch((error) => {
-          console.error("خطأ في الاتصال: ", error);
-          alert("حدث خطأ في الاتصال بقاعدة البيانات، تأكد من الـ Rules");
-      });
-  }
-
-  // 5. تشغيل الدالة
+  // 3. وظيفة جلب البيانات وعرضها في الجدول
   function loadSalaries() {
     db.collection("salary_sys_v1").get().then((querySnapshot) => {
-        // نختار المكان الذي ستظهر فيه الأسماء (افترضنا أن الجدول له id="salaryTable")
-        const tableBody = document.querySelector("table tbody") || document.querySelector("table");
+      // البحث عن الجدول في صفحتك
+      const tableBody = document.querySelector("table tbody") || document.querySelector("table");
+      
+      if (tableBody) {
+        tableBody.innerHTML = ""; // مسح الأسماء القديمة (الثابتة)
         
-        // مسح البيانات القديمة لكي لا تتكرر
-        if(tableBody) tableBody.innerHTML = ""; 
-
         querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            // إضافة سطر جديد لكل موظف موجود في Firebase
-            if(tableBody) {
-                tableBody.innerHTML += `
-                    <tr>
-                        <td>${data.name || 'موظف'}</td>
-                        <td>${data.salary || '0'}</td>
-                        <td>${data.status || '-'}</td>
-                    </tr>
-                `;
-            }
+          const data = doc.data();
+          // رسم سطر جديد لكل موظف من قاعدة البيانات
+          tableBody.innerHTML += `
+            <tr>
+              <td style="color: #0D47A1; font-weight: bold;">${data.name || 'موظف'}</td>
+              <td>${data.salary || '0'}</td>
+              <td><span class="status-badge">${data.status || 'نشط'}</span></td>
+            </tr>
+          `;
         });
-        console.log("تم تحديث الجدول بنجاح!");
+      }
+      console.log("تم تحديث الجدول ببيانات Firebase!");
     }).catch((error) => {
-        console.error("خطأ: ", error);
+      console.error("خطأ في الجلب: ", error);
     });
-}
+  }
+
+  // 4. تنفيذ الجلب فور فتح الصفحة
+  loadSalaries();
+
 
 </script>
     
