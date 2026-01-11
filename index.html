@@ -586,26 +586,42 @@
     function downloadBackup() { let a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(appData)],{type:"application/json"})); a.download=`Salary_${getFormattedDate().replace(/\//g,'-')}.json`; a.click(); }
     function restoreBackup(i) { let f=i.files[0], r=new FileReader(); r.onload=e=>{try{let d=JSON.parse(e.target.result); if(d.emps){if(confirm("استعادة؟")) {appData=d;save();location.reload();}}}catch(x){alert("خطأ");}}; if(f)r.readAsText(f); }
 </script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-// وظيفة لجلب البيانات وعرضها
-function loadSalaries() {
-    db.collection("salary_sys_v1").get().then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            console.log("تم العثور على موظف:", data);
-            
-            // ملاحظة: إذا كان لديك جدول في HTML بمعرف (id="salaryTable")، 
-            // يمكننا كتابة كود هنا ليضيف البيانات إليه تلقائياً.
-        });
-    }).catch((error) => {
-        console.error("خطأ في جلب البيانات: ", error);
-    });
-}
 
-// تشغيل الوظيفة عند فتح الصفحة
-loadSalaries();
-    
+<script>
+  // 2. إعدادات المشروع (ضع بياناتك هنا)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDZ81FaYxuKmhLPW139xUX_...", 
+    authDomain: "salary-system-cloud.firebaseapp.com",
+    projectId: "salary-system-cloud",
+    storageBucket: "salary-system-cloud.firebasestorage.app",
+    messagingSenderId: "692875443470",
+    appId: "1:692875443470:web:a4b39e6b2e9...",
+    measurementId: "G-K3YKDZQ4DT"
+  };
+
+  // 3. بدء التشغيل (ترتيب مهم جداً)
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // 4. دالة جلب البيانات (توضع بعد تعريف db)
+  function loadSalaries() {
+      db.collection("salary_sys_v1").get().then((querySnapshot) => {
+          console.log("تم الاتصال بنجاح!");
+          querySnapshot.forEach((doc) => {
+              console.log("بيانات الموظف:", doc.data());
+          });
+      }).catch((error) => {
+          console.error("خطأ في الاتصال: ", error);
+          alert("حدث خطأ في الاتصال بقاعدة البيانات، تأكد من الـ Rules");
+      });
+  }
+
+  // 5. تشغيل الدالة
+  loadSalaries();
+</script>
+
 <script>
     
     const firebaseConfig = {
