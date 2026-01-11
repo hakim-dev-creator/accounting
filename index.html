@@ -586,6 +586,28 @@
     function downloadBackup() { let a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(appData)],{type:"application/json"})); a.download=`Salary_${getFormattedDate().replace(/\//g,'-')}.json`; a.click(); }
     function restoreBackup(i) { let f=i.files[0], r=new FileReader(); r.onload=e=>{try{let d=JSON.parse(e.target.result); if(d.emps){if(confirm("استعادة؟")) {appData=d;save();location.reload();}}}catch(x){alert("خطأ");}}; if(f)r.readAsText(f); }
 </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+// وظيفة لجلب البيانات وعرضها
+function loadSalaries() {
+    db.collection("salary_sys_v1").get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            console.log("تم العثور على موظف:", data);
+            
+            // ملاحظة: إذا كان لديك جدول في HTML بمعرف (id="salaryTable")، 
+            // يمكننا كتابة كود هنا ليضيف البيانات إليه تلقائياً.
+        });
+    }).catch((error) => {
+        console.error("خطأ في جلب البيانات: ", error);
+    });
+}
+
+// تشغيل الوظيفة عند فتح الصفحة
+loadSalaries();
+    
+<script>
+    
     const firebaseConfig = {
 
   apiKey: "AIzaSyDZ81FaYxuKmhLPw139xUX_-jlA5tv3ad8",
@@ -603,6 +625,12 @@
   measurementId: "G-K3YKDZQ4DT"
 
 };
+    // بدء تشغيل التطبيق
+firebase.initializeApp(firebaseConfig);
+
+// تعريف قاعدة البيانات لاستخدامها في التطبيق
+const db = firebase.firestore();
+    
     
 </body>
 </html>
