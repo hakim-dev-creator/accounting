@@ -586,5 +586,23 @@
     function downloadBackup() { let a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(appData)],{type:"application/json"})); a.download=`Salary_${getFormattedDate().replace(/\//g,'-')}.json`; a.click(); }
     function restoreBackup(i) { let f=i.files[0], r=new FileReader(); r.onload=e=>{try{let d=JSON.parse(e.target.result); if(d.emps){if(confirm("استعادة؟")) {appData=d;save();location.reload();}}}catch(x){alert("خطأ");}}; if(f)r.readAsText(f); }
 </script>
+    const firebaseConfig = {
+
+  apiKey: "AIzaSyDZ81FaYxuKmhLPw139xUX_-jlA5tv3ad8",
+
+  authDomain: "salary-system-cloud.firebaseapp.com",
+
+  projectId: "salary-system-cloud",
+
+  storageBucket: "salary-system-cloud.firebasestorage.app",
+
+  messagingSenderId: "692875443470",
+
+  appId: "1:692875443470:web:a4b39e6b2e9a5c440deb5f",
+
+  measurementId: "G-K3YKDZQ4DT"
+
+};
+    
 </body>
 </html>
