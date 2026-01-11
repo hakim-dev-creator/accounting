@@ -619,7 +619,33 @@
   }
 
   // 5. تشغيل الدالة
-  loadSalaries();
+  function loadSalaries() {
+    db.collection("salary_sys_v1").get().then((querySnapshot) => {
+        // نختار المكان الذي ستظهر فيه الأسماء (افترضنا أن الجدول له id="salaryTable")
+        const tableBody = document.querySelector("table tbody") || document.querySelector("table");
+        
+        // مسح البيانات القديمة لكي لا تتكرر
+        if(tableBody) tableBody.innerHTML = ""; 
+
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            // إضافة سطر جديد لكل موظف موجود في Firebase
+            if(tableBody) {
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${data.name || 'موظف'}</td>
+                        <td>${data.salary || '0'}</td>
+                        <td>${data.status || '-'}</td>
+                    </tr>
+                `;
+            }
+        });
+        console.log("تم تحديث الجدول بنجاح!");
+    }).catch((error) => {
+        console.error("خطأ: ", error);
+    });
+}
+
 </script>
     
     
