@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>نظام الرواتب (Enterprise V5.0)</title>
+    <title>نظام الرواتب (V5.1 Accounting Fix)</title>
     
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#2563EB">
@@ -16,20 +16,18 @@
         :root {
             --primary: #2563EB; --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-sub: #64748B;
             --border: #E2E8F0; --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
-            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1); --radius: 16px;
+            --disabled: #CBD5E1; --radius: 16px;
         }
         [data-theme="dark"] {
             --bg: #0F172A; --surface: #1E293B; --text: #F8FAFC; --text-sub: #94A3B8;
-            --border: #334155; --shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+            --border: #334155; --disabled: #475569;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
-        body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; transition: 0.3s; padding-bottom: 80px; }
+        body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
 
-        /* General */
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .card { background: var(--surface); border-radius: var(--radius); padding: 20px; margin-bottom: 15px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .card { background: var(--surface); border-radius: var(--radius); padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; }
-        .btn:active { transform: scale(0.98); }
         .btn-primary { background: var(--primary); color: white; }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
@@ -42,8 +40,8 @@
         /* Stats */
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-card { background: var(--surface); padding: 15px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
-        .stat-val { font-size: 1.4rem; font-weight: 800; color: var(--primary); display: block; }
-        .stat-label { font-size: 0.8rem; color: var(--text-sub); }
+        .stat-val { font-size: 1.2rem; font-weight: 800; color: var(--primary); display: block; }
+        .stat-label { font-size: 0.75rem; color: var(--text-sub); }
 
         /* Calendar */
         .calendar-grid { display: grid; grid-template-columns: 120px repeat(31, 50px); overflow-x: auto; gap: 2px; padding-bottom: 10px; }
@@ -54,9 +52,10 @@
         .present { background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: var(--success); }
         .absent { background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: var(--danger); }
         .weekend { background: rgba(245, 158, 11, 0.1); }
+        .future { background: var(--disabled); opacity: 0.5; cursor: not-allowed; border: none; } /* نمط المستقبل */
 
         /* Nav */
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px; z-index: 1000; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px; z-index: 1000; }
         .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-sub); font-size: 0.75rem; background: none; border: none; padding: 5px; }
         .nav-item.active { color: var(--primary); }
         .nav-icon { font-size: 1.4rem; margin-bottom: 2px; }
@@ -71,7 +70,6 @@
         #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 16px; position: fixed; z-index: 6000; left: 50%; bottom: 80px; transform: translateX(-50%); opacity: 0; transition: 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 90px; }
         
-        /* Loading */
         #loader { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; justify-content: center; align-items: center; }
         .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -83,7 +81,7 @@
 
 <div id="authScreen" style="display:none">
     <h2 style="color:var(--primary); margin-bottom:5px">تسجيل الدخول</h2>
-    <p style="color:var(--text-sub); margin-bottom:30px">Salary System V5.0</p>
+    <p style="color:var(--text-sub); margin-bottom:30px">Salary System V5.1</p>
     <input type="email" id="authEmail" placeholder="البريد الإلكتروني">
     <input type="password" id="authPass" placeholder="كلمة المرور">
     <button class="btn btn-primary" onclick="handleLogin()">دخول 🔒</button>
@@ -105,7 +103,9 @@
 
         <div id="view-dashboard" class="view">
             <div class="stat-grid">
-                <div class="stat-card"><span class="stat-val" id="statTotalSal">0</span><span class="stat-label">الرواتب المستحقة</span></div>
+                <div class="stat-card"><span class="stat-val" id="statTotalSal">0</span><span class="stat-label">صافي الرواتب للدفع</span></div>
+                <div class="stat-card"><span class="stat-val" id="statAdvances">0</span><span class="stat-label">مجموع التسبيقات (الشهر)</span></div>
+                <div class="stat-card"><span class="stat-val" id="statTaxes">0</span><span class="stat-label">اقتطاعات (CNAS+IRG)</span></div>
                 <div class="stat-card"><span class="stat-val" id="statPresent">0</span><span class="stat-label">حضور اليوم</span></div>
             </div>
             <div class="card"><canvas id="financeChart"></canvas></div>
@@ -129,11 +129,19 @@
                 <div id="empList"></div>
             </div>
         </div>
+
+        <div id="view-finance" class="view" style="display:none">
+            <div class="card">
+                <h3>💸 التسبيقات والديون</h3>
+                <div id="advancesList"></div>
+            </div>
+        </div>
     </div>
 
     <nav class="nav-bar">
         <button class="nav-item active" onclick="switchView('dashboard')"><span class="nav-icon">📊</span><span>الرئيسية</span></button>
         <button class="nav-item" onclick="switchView('calendar')"><span class="nav-icon">📅</span><span>الدوام</span></button>
+        <button class="nav-item" onclick="switchView('finance')"><span class="nav-icon">💸</span><span>التسبيقات</span></button>
         <button class="nav-item" onclick="switchView('employees')"><span class="nav-icon">👥</span><span>الموظفين</span></button>
     </nav>
 </div>
@@ -142,12 +150,22 @@
     <div class="modal-content">
         <h3>بيانات الموظف</h3>
         <input id="empName" placeholder="الاسم الكامل">
-        <label style="font-size:0.8rem">الراتب الأساسي (شهرياً)</label>
+        <label style="font-size:0.8rem">الراتب الأساسي (Base Salary)</label>
         <input type="number" id="empBase" placeholder="0">
         <label style="font-size:0.8rem">منح (Primes)</label>
         <input type="number" id="empBonus" placeholder="0">
-        <label style="font-size:0.8rem">اقتطاعات (Assurance/IRG)</label>
-        <input type="number" id="empDeduct" placeholder="0">
+        
+        <div style="display:flex; gap:10px">
+            <div style="flex:1">
+                <label style="font-size:0.8rem">CNAS/CASNOS</label>
+                <input type="number" id="empCNAS" placeholder="0">
+            </div>
+            <div style="flex:1">
+                <label style="font-size:0.8rem">IRG (الضريبة)</label>
+                <input type="number" id="empIRG" placeholder="0">
+            </div>
+        </div>
+
         <button class="btn-success" onclick="saveEmployee()">حفظ البيانات</button>
         <button class="btn-ghost" onclick="closeM('empModal')" style="margin-top:10px">إغلاق</button>
     </div>
@@ -164,6 +182,16 @@
     </div>
 </div>
 
+<div id="advModal" class="modal">
+    <div class="modal-content">
+        <h3>تسجيل تسبيق (Avance)</h3>
+        <p id="advEmpName" style="color:var(--text-sub)"></p>
+        <input type="number" id="advAmount" placeholder="المبلغ (دج)">
+        <button class="btn-primary" onclick="saveAdvance()">تأكيد</button>
+        <button class="btn-ghost" onclick="closeM('advModal')" style="margin-top:10px">إلغاء</button>
+    </div>
+</div>
+
 <div id="toast">تم الحفظ ✅</div>
 
 <script type="module">
@@ -171,7 +199,6 @@
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // ✅✅ تم دمج كود مشروعك الجديد هنا بنجاح ✅✅
     const firebaseConfig = {
         apiKey: "AIzaSyASwJ3qphkvxyu2oF49Wb_9_3jBDwuUOKA",
         authDomain: "salarysystem-e2106.firebaseapp.com",
@@ -186,16 +213,14 @@
     const auth = getAuth(app);
     const mainDocRef = doc(db, "salary_system", "main_data");
 
-    let appData = { emps: [], att: {}, companyName: "المؤسسة", logo: null };
+    let appData = { emps: [], att: {}, advances: {}, companyName: "المؤسسة", logo: null };
     let currDate = new Date();
     let sel = null;
+    let selEmpForAdv = null;
     let chartInstance = null;
 
-    // Auth & Loader Logic
     onAuthStateChanged(auth, (user) => {
-        // إخفاء شاشة التحميل بمجرد التحقق من المستخدم
         document.getElementById('loader').style.display = 'none';
-        
         if (user) {
             document.getElementById('authScreen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
@@ -212,7 +237,7 @@
         const p = document.getElementById('authPass').value;
         signInWithEmailAndPassword(auth, e, p).catch(err => {
             document.getElementById('loader').style.display = 'none';
-            document.getElementById('authMsg').innerText = "خطأ في الدخول: تأكد من الإيميل وكلمة السر";
+            document.getElementById('authMsg').innerText = "خطأ: " + err.message;
         });
     };
 
@@ -221,9 +246,7 @@
             if (docSnap.exists()) {
                 appData = { ...appData, ...docSnap.data() };
                 renderAll(); updateStats();
-            } else {
-                saveToFirebase();
-            }
+            } else { saveToFirebase(); }
         });
     }
 
@@ -232,27 +255,60 @@
     }
 
     function renderAll() {
-        renderCalendar(); renderEmployees();
+        renderCalendar(); renderEmployees(); renderAdvances();
         document.getElementById('compName').innerText = appData.companyName;
     }
 
+    // --- Core Accounting Logic ---
     function updateStats() {
-        let totalSal = 0, present = 0;
+        let totalNet = 0, present = 0, totalAdv = 0, totalTax = 0;
         const daysInMonth = new Date(currDate.getFullYear(), currDate.getMonth()+1, 0).getDate();
-        
+        const monthKey = `${currDate.getFullYear()}-${currDate.getMonth()}`; // مفتاح الشهر الحالي
+
+        // 1. Calculate Monthly Advances
+        if(appData.advances && appData.advances[monthKey]) {
+            Object.values(appData.advances[monthKey]).forEach(empAdvs => {
+                empAdvs.forEach(adv => totalAdv += parseFloat(adv.amount));
+            });
+        }
+
+        // 2. Calculate Salaries
         appData.emps.forEach(e => {
             let monthlyBase = parseFloat(e.baseSalary) || 0;
             let dailyRate = monthlyBase / 30; 
             let workedDays = 0;
+            
+            // Count Worked Days
             for(let d=1; d<=daysInMonth; d++) {
                 let k = `${currDate.getFullYear()}-${currDate.getMonth()}-${d}-${e.id}`;
-                if(appData.att[k]?.status === 'full') { workedDays++; if(d === new Date().getDate()) present++; }
+                if(appData.att[k]?.status === 'full') { 
+                    workedDays++; 
+                    if(d === new Date().getDate()) present++; 
+                }
             }
-            let net = (workedDays * dailyRate) + (parseFloat(e.bonuses)||0) - (parseFloat(e.deductions)||0);
-            totalSal += net;
+
+            // Calc Individual Advances
+            let empTotalAdv = 0;
+            if(appData.advances && appData.advances[monthKey] && appData.advances[monthKey][e.id]) {
+                appData.advances[monthKey][e.id].forEach(a => empTotalAdv += parseFloat(a.amount));
+            }
+
+            // Taxes
+            let cnas = parseFloat(e.cnas) || 0;
+            let irg = parseFloat(e.irg) || 0;
+            totalTax += (cnas + irg);
+
+            // FINAL NET FORMULA
+            let gross = (workedDays * dailyRate) + (parseFloat(e.bonuses)||0);
+            let net = gross - cnas - irg - empTotalAdv;
+            
+            if(net < 0) net = 0; // حماية من الراتب السالب
+            totalNet += net;
         });
 
-        document.getElementById('statTotalSal').innerText = Math.round(totalSal).toLocaleString() + " دج";
+        document.getElementById('statTotalSal').innerText = Math.round(totalNet).toLocaleString() + " دج";
+        document.getElementById('statAdvances').innerText = totalAdv.toLocaleString() + " دج";
+        document.getElementById('statTaxes').innerText = totalTax.toLocaleString() + " دج";
         document.getElementById('statPresent').innerText = present;
 
         const ctx = document.getElementById('financeChart').getContext('2d');
@@ -260,16 +316,17 @@
         chartInstance = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['الرواتب', 'المتبقي'],
-                datasets: [{ data: [totalSal, 100000], backgroundColor: ['#2563EB', '#E2E8F0'] }]
+                labels: ['الرواتب', 'الضرائب', 'التسبيقات'],
+                datasets: [{ data: [totalNet, totalTax, totalAdv], backgroundColor: ['#2563EB', '#F59E0B', '#EF4444'] }]
             },
-            options: { responsive: true, cutout: '70%', plugins: { legend: { display: false } } }
+            options: { responsive: true, cutout: '70%', plugins: { legend: { position:'bottom' } } }
         });
     }
 
-    // Employees
+    // --- Employees ---
     window.openEmpModal = () => {
         document.getElementById('empName').value = ""; document.getElementById('empBase').value = "";
+        document.getElementById('empCNAS').value = ""; document.getElementById('empIRG').value = "";
         document.getElementById('empModal').style.display = "flex";
     };
     window.saveEmployee = () => {
@@ -280,7 +337,8 @@
                 name: n,
                 baseSalary: document.getElementById('empBase').value || 0,
                 bonuses: document.getElementById('empBonus').value || 0,
-                deductions: document.getElementById('empDeduct').value || 0
+                cnas: document.getElementById('empCNAS').value || 0,
+                irg: document.getElementById('empIRG').value || 0
             });
             saveToFirebase(); closeM('empModal');
         }
@@ -288,14 +346,66 @@
     function renderEmployees() {
         document.getElementById('empList').innerHTML = appData.emps.map(e => `
             <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid var(--border); align-items:center">
-                <div><div style="font-weight:bold">${e.name}</div><div style="font-size:0.8rem; color:var(--text-sub)">الأساسي: ${e.baseSalary}</div></div>
+                <div>
+                    <div style="font-weight:bold">${e.name}</div>
+                    <div style="font-size:0.75rem; color:var(--text-sub)">الأساسي: ${e.baseSalary} | CNAS: ${e.cnas} | IRG: ${e.irg}</div>
+                </div>
                 <button class="btn-danger" style="width:auto; padding:5px 10px" onclick="deleteEmp(${e.id})">حذف</button>
             </div>`).join('');
     }
     window.deleteEmp = (id) => { if(confirm("حذف؟")) { appData.emps = appData.emps.filter(e => e.id !== id); saveToFirebase(); } };
 
-    // Calendar
-    window.changeMonth = (n) => { currDate.setMonth(currDate.getMonth() + n); renderCalendar(); };
+    // --- Advances Logic ---
+    function renderAdvances() {
+        const list = document.getElementById('advancesList');
+        const monthKey = `${currDate.getFullYear()}-${currDate.getMonth()}`;
+        
+        let html = '';
+        appData.emps.forEach(e => {
+            // Get advances for this month
+            let advs = (appData.advances && appData.advances[monthKey] && appData.advances[monthKey][e.id]) || [];
+            let total = advs.reduce((a, b) => a + parseFloat(b.amount), 0);
+            
+            html += `
+            <div style="margin-bottom:10px; border:1px solid var(--border); border-radius:12px; padding:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <b>${e.name}</b>
+                    <span style="color:var(--danger); font-weight:bold">${total} دج</span>
+                </div>
+                <button class="btn-ghost" style="margin-top:5px; font-size:0.8rem" onclick="openAdvModal('${e.id}', '${e.name}')">+ تسجيل تسبيق</button>
+                <div style="margin-top:5px; font-size:0.8rem; color:var(--text-sub)">
+                    ${advs.map(a => `<div>• ${a.amount} دج (${a.date})</div>`).join('')}
+                </div>
+            </div>`;
+        });
+        list.innerHTML = html || '<p style="text-align:center">لا يوجد موظفين</p>';
+    }
+
+    window.openAdvModal = (id, name) => {
+        selEmpForAdv = id;
+        document.getElementById('advEmpName').innerText = name;
+        document.getElementById('advAmount').value = '';
+        document.getElementById('advModal').style.display = 'flex';
+    };
+
+    window.saveAdvance = () => {
+        let amt = document.getElementById('advAmount').value;
+        if(amt && selEmpForAdv) {
+            const monthKey = `${currDate.getFullYear()}-${currDate.getMonth()}`;
+            if(!appData.advances) appData.advances = {};
+            if(!appData.advances[monthKey]) appData.advances[monthKey] = {};
+            if(!appData.advances[monthKey][selEmpForAdv]) appData.advances[monthKey][selEmpForAdv] = [];
+            
+            appData.advances[monthKey][selEmpForAdv].push({
+                amount: amt,
+                date: new Date().toLocaleDateString('ar-DZ')
+            });
+            saveToFirebase(); closeM('advModal');
+        }
+    };
+
+    // --- Calendar (With Future Lock) ---
+    window.changeMonth = (n) => { currDate.setMonth(currDate.getMonth() + n); renderCalendar(); renderAdvances(); };
     function renderCalendar() {
         document.getElementById('monthLabel').innerText = currDate.toLocaleDateString('ar-DZ', { month: 'long', year: 'numeric' });
         const grid = document.getElementById('calendarGrid');
@@ -309,15 +419,27 @@
             html += `<div class="cal-head ${isWeekend?'weekend':''}">${d}</div>`;
         }
 
+        let today = new Date();
+        today.setHours(0,0,0,0);
+
         appData.emps.forEach(e => {
             html += `<div class="cal-cell cal-emp">${e.name}</div>`;
             for(let d=1; d<=days; d++) {
+                let cellDate = new Date(currDate.getFullYear(), currDate.getMonth(), d);
                 let k = `${currDate.getFullYear()}-${currDate.getMonth()}-${d}-${e.id}`;
-                let date = new Date(currDate.getFullYear(), currDate.getMonth(), d);
-                let isWeekend = (date.getDay() === 5 || date.getDay() === 6);
+                let isWeekend = (cellDate.getDay() === 5 || cellDate.getDay() === 6);
+                
+                // Future Check
+                let isFuture = cellDate > today;
+                
                 let r = appData.att[k], cls = isWeekend ? 'weekend' : '', txt = '-';
                 if(r) { if(r.status === 'full') { cls+=' present'; txt='✔'; } else { cls+=' absent'; txt='✖'; } }
-                html += `<div class="cal-cell ${cls}" onclick="openAttModal('${e.name}', '${k}')">${txt}</div>`;
+                
+                if(isFuture) {
+                    html += `<div class="cal-cell future" onclick="showToast('🚫 لا يمكن تسجيل الحضور للمستقبل')"></div>`;
+                } else {
+                    html += `<div class="cal-cell ${cls}" onclick="openAttModal('${e.name}', '${k}')">${txt}</div>`;
+                }
             }
         });
         grid.innerHTML = html;
